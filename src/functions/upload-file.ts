@@ -16,6 +16,9 @@ export const upload_file = async (
       file.originalname.split(".")[1]
     }`;
 
+    // rename file
+    file.originalname = key;
+
     const upload = storage.createFile(
       bucket,
       ID.unique(),

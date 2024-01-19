@@ -10,7 +10,7 @@ const upload = multer({
 });
 
 app.post(
-  "/",
+  "/upload-product-image",
   upload.single("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
