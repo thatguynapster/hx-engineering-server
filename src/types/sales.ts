@@ -1,9 +1,9 @@
 import { Types } from "mongoose";
-import { Product } from "./products";
+import { IProduct } from "./products";
 
-export type Sales = {
+export type ISales = {
   _id: Types.ObjectId;
-  products: Product["_id"][];
+  products: IProduct["_id"][];
   discount: Types.ObjectId;
   is_dev: boolean;
 };

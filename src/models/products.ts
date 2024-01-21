@@ -1,13 +1,14 @@
 import { Schema, SchemaOptions, model } from "mongoose";
 import mongoosePaginate from "mongoose-paginate";
-import { Product } from "../types";
+import { IProduct } from "../types";
 
-const productSchema = new Schema<Product>(
+const productSchema = new Schema<IProduct>(
   {
     category: { type: String },
     details: { type: String },
     features: { type: Map, of: Schema.Types.Mixed },
     images: { type: [String], required: true },
+    is_deleted: { type: Boolean },
     is_dev: { type: Boolean, required: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
@@ -18,4 +19,4 @@ const productSchema = new Schema<Product>(
 
 productSchema.plugin(mongoosePaginate);
 
-module.exports = model<Product>("Products", productSchema);
+export const Product = model<IProduct>("Products", productSchema, "Products");

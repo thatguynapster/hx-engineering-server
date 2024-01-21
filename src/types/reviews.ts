@@ -1,10 +1,10 @@
 import { Types } from "mongoose";
-import { Product } from "./products";
+import { IProduct } from "./products";
 
-export type Review = {
+export type IReview = {
   _id: Types.ObjectId;
   text: string;
-  product: Product["_id"];
+  product: IProduct["_id"];
   rating: number;
   is_dev: boolean;
 };

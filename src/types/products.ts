@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
-export type Product = {
-  _id?: Types.ObjectId;
+export type IProduct = {
+  _id: Types.ObjectId;
   name: string;
   price: number;
   details: string;
@@ -9,5 +9,6 @@ export type Product = {
   features: { [key: string]: string | number };
   category: string;
   quantity: number;
+  is_deleted: boolean;
   is_dev: boolean;
 };

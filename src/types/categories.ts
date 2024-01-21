@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-export type Category = {
+export type ICategory = {
   _id: Types.ObjectId;
   name: string;
   description: string;

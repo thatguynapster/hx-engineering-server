@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-export type Discount = {
+export type IDiscount = {
   _id: Types.ObjectId;
   name: string;
   code: string;
