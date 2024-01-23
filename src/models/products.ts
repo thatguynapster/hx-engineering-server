@@ -1,15 +1,33 @@
-import { Schema, SchemaOptions, model } from "mongoose";
-import mongoosePaginate from "mongoose-paginate";
-import { IProduct } from "../types";
+import {
+  InferSchemaType,
+  Model,
+  PaginateOptions,
+  PaginateResult,
+  Schema,
+  model,
+  Document,
+} from "mongoose"; // prettier-ignore
+import mongoosePaginate from "mongoose-paginate-v2";
 
-const productSchema = new Schema<IProduct>(
+export type IProduct = InferSchemaType<typeof productSchema>;
+
+export interface IProductDocument extends Model<IProduct> {
+  paginate: (
+    query?: unknown,
+    options?: PaginateOptions,
+    callback?: (err: unknown, result: PaginateResult<IProduct>) => void
+  ) => Promise<PaginateResult<IProduct>>;
+}
+
+const productSchema = new Schema(
   {
+    _id: { type: Schema.Types.ObjectId },
     category: { type: String },
     details: { type: String },
-    features: { type: Map, of: Schema.Types.Mixed },
+    features: { type: Schema.Types.Mixed },
     images: { type: [String], required: true },
-    is_deleted: { type: Boolean },
-    is_dev: { type: Boolean, required: true },
+    is_deleted: { type: Boolean, default: false },
+    is_dev: { type: Boolean, default: false, required: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
@@ -19,4 +37,8 @@ const productSchema = new Schema<IProduct>(
 
 productSchema.plugin(mongoosePaginate);
 
-export const Product = model<IProduct>("Products", productSchema, "Products");
+export const Product = model<IProduct, IProductDocument>(
+  "Products",
+  productSchema,
+  "Products"
+);

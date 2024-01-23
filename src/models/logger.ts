@@ -1,5 +1,5 @@
-import { Schema, SchemaOptions, model } from "mongoose";
-import mongoosePaginate from "mongoose-paginate";
+import mongoosePaginate from "mongoose-paginate-v2";
+import { Schema, model } from "mongoose";
 import { ILog } from "types";
 
 const logSchema = new Schema<ILog>(

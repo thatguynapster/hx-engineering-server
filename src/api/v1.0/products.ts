@@ -1,10 +1,10 @@
 import express, { Express, NextFunction, Request, Response } from "express";
+import mongoose, { Types } from "mongoose";
 import multer from "multer";
 
 import { log_product_entry, upload_file } from "../../functions";
 import { createProductSchema, updateProductSchema } from "../../validators";
 import { ProductCollection } from "../../models";
-import mongoose from "mongoose";
 
 const app: Express = express();
 
@@ -40,7 +40,12 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     }
     // END check if product exists
 
-    let product = new ProductCollection({ ...product_body, is_deleted: false });
+    let product = new ProductCollection({
+      ...product_body,
+      _id: new Types.ObjectId(),
+      is_deleted: false,
+      is_dev: process.env.NODE_ENV === "dev",
+    });
 
     product = (await product.save()).toObject();
 
@@ -58,6 +63,75 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 });
+
+// get products
+app.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { limit = 10, page = 1 } = req.query as unknown as {
+      limit: number;
+      page: number;
+    };
+
+    const product_doc = await ProductCollection.paginate(
+      { is_deleted: false, is_dev: process.env.NODE_ENV === "dev" },
+      { lean: true, limit, page, sort: { _id: -1 } }
+    );
+
+    if (!product_doc) {
+      return res.status(200).json({
+        success: false,
+        message: "No products found",
+        code: 204,
+        response: null,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Products found",
+      code: 200,
+      response: product_doc,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+//get single product
+app.get(
+  "/:product_id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { product_id } = req.params as unknown as {
+        product_id: string;
+      };
+
+      const product_doc = await ProductCollection.findOne({
+        _id: product_id,
+        is_deleted: false,
+        is_dev: process.env.NODE_ENV === "dev",
+      });
+
+      if (!product_doc) {
+        return res.status(200).json({
+          success: false,
+          message: "No products found",
+          code: 204,
+          response: null,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Products found",
+        code: 200,
+        response: product_doc,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // update product
 app.put(

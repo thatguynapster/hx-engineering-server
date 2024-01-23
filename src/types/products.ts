@@ -1,14 +1,14 @@
-import { Types } from "mongoose";
+import { Schema, Document } from "mongoose";
 
-export type IProduct = {
-  _id: Types.ObjectId;
-  name: string;
-  price: number;
-  details: string;
-  images: string[];
-  features: { [key: string]: string | number };
+export interface IProduct extends Document {
+  _id: Schema.Types.ObjectId;
   category: string;
-  quantity: number;
+  details: string;
+  features: { [key: string]: string | number };
   is_deleted: boolean;
   is_dev: boolean;
-};
+  images: string[];
+  name: string;
+  price: number;
+  quantity: number;
+}
