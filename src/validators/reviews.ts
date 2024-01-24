@@ -17,8 +17,9 @@ export const updateReviewSchema = async (
   updateProductBody: IReview
 ): Promise<IReview> => {
   const schema = Joi.object({
-    name: Joi.string(),
-    description: Joi.string(),
+    text: Joi.string(),
+    product: Joi.string(),
+    rating: Joi.number(),
   });
 
   return await schema.validateAsync(updateProductBody);

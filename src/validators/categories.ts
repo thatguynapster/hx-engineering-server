@@ -1,5 +1,4 @@
 import Joi from "joi";
-import { Schema } from "mongoose";
 import { ICategory } from "types";
 
 export const createCategorySchema = async (
