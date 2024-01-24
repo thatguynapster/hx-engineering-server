@@ -1,6 +1,8 @@
 import { LogsCollection } from "../../models";
+import { sentenceCase } from "../../utils";
 
-export const log_product_entry = async (
+export const log_entry = async (
+  collection: string,
   document_data: any,
   event: "CREATE" | "UPDATE" | "DELETE"
 ) => {
@@ -8,13 +10,13 @@ export const log_product_entry = async (
     let message = "";
     switch (event) {
       case "CREATE":
-        message = "Product created.";
+        message = `${sentenceCase(collection)} created.`;
         break;
       case "UPDATE":
-        message = `Product updated`;
+        message = `${sentenceCase(collection)} updated`;
         break;
       case "DELETE":
-        message = `Product deleted.`;
+        message = `${sentenceCase(collection)} deleted.`;
         break;
     }
 

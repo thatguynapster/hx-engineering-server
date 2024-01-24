@@ -2,7 +2,7 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
 import multer from "multer";
 
-import { log_product_entry, upload_file } from "../../functions";
+import { log_entry, upload_file } from "../../functions";
 import { createProductSchema, updateProductSchema } from "../../validators";
 import { ProductCollection } from "../../models";
 
@@ -16,7 +16,6 @@ const upload = multer({
 app.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const product_body = await createProductSchema(req.body);
-    // console.log(product_body);
 
     // check if product exists
     const product_exists = await ProductCollection.findOne({
@@ -35,7 +34,7 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     if (product_exists) {
       const e = new Error("Product with same name already exists");
-      e.name = "ValidationError";
+      e.name = "AlreadyExists";
       throw e;
     }
     // END check if product exists
@@ -43,14 +42,13 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     let product = new ProductCollection({
       ...product_body,
       _id: new Types.ObjectId(),
-      is_deleted: false,
       is_dev: process.env.NODE_ENV === "dev",
     });
 
     product = (await product.save()).toObject();
 
     // log product entry
-    await log_product_entry(product_body, "CREATE");
+    await log_entry("product", product_body, "CREATE");
     // END log product entry
 
     res.status(200).json({
@@ -78,7 +76,7 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!product_doc) {
-      return res.status(200).json({
+      return res.status(204).json({
         success: false,
         message: "No products found",
         code: 204,
@@ -113,7 +111,7 @@ app.get(
       });
 
       if (!product_doc) {
-        return res.status(200).json({
+        return res.status(204).json({
           success: false,
           message: "No products found",
           code: 204,
@@ -163,7 +161,7 @@ app.put(
       }
 
       // log product entry
-      await log_product_entry(product_body, "UPDATE");
+      await log_entry("product", product_body, "UPDATE");
       // END log product entry
 
       return res.status(200).json({
@@ -178,6 +176,7 @@ app.put(
   }
 );
 
+// delete product
 app.delete(
   "/:product_id",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -221,7 +220,7 @@ app.delete(
       }
 
       // log product entry
-      await log_product_entry({ _id: product_id }, "DELETE");
+      await log_entry("product", { _id: product_id }, "DELETE");
       // END log product entry
 
       return res.status(200).json({

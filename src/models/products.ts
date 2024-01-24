@@ -5,7 +5,6 @@ import {
   PaginateResult,
   Schema,
   model,
-  Document,
 } from "mongoose"; // prettier-ignore
 import mongoosePaginate from "mongoose-paginate-v2";
 

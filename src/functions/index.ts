@@ -1,2 +1,2 @@
 export * from "./upload-file";
-export * from "./loggers";
+export * from "./logger";

@@ -1,18 +1,18 @@
 import Joi from "joi";
-import { IProduct } from "types";
+import { IProduct } from "models/products";
+// import { IProduct } from "types";
 
 export const createProductSchema = async (
   createProductBody: IProduct
 ): Promise<IProduct> => {
   const schema = Joi.object({
     name: Joi.string().required(),
-    price: Joi.string().required(),
+    price: Joi.number().required(),
     details: Joi.string().required(),
     images: Joi.array().items(Joi.string()).min(1).required(),
     features: Joi.object().keys().unknown(true),
     category: Joi.string().required(),
-    quantity: Joi.string().required(),
-    is_dev: Joi.boolean(),
+    quantity: Joi.number().required(),
   });
 
   return await schema.validateAsync(createProductBody);

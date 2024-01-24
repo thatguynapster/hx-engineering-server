@@ -30,6 +30,8 @@ app.use((_, res: Response, next: NextFunction) => {
  */
 import Products from "../api/v1.0/products";
 app.use("/api/v1.0/products", Products);
+import Categories from "../api/v1.0/categories";
+app.use("/api/v1.0/categories", Categories);
 
 app.get("/health-check", (_, res: Response, next: NextFunction) => {
   try {
