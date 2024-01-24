@@ -34,6 +34,8 @@ import Categories from "../api/v1.0/categories";
 app.use("/api/v1.0/categories", Categories);
 import Reviews from "../api/v1.0/reviews";
 app.use("/api/v1.0/reviews", Reviews);
+import Discounts from "../api/v1.0/discounts";
+app.use("/api/v1.0/discounts", Discounts);
 
 app.get("/health-check", (_, res: Response, next: NextFunction) => {
   try {
