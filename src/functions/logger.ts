@@ -1,5 +1,5 @@
-import { LogsCollection } from "../../models";
-import { sentenceCase } from "../../utils";
+import { LogsCollection } from "../models";
+import { sentenceCase } from "../utils";
 
 export const log_entry = async (
   collection: string,

@@ -4,7 +4,6 @@ import mongoose, { Types } from "mongoose";
 import { log_entry } from "../../functions";
 import { createCategorySchema } from "../../validators";
 import { CategoryCollection } from "../../models";
-// import { createProductSchema, updateProductSchema } from "../../validators";
 
 const app: Express = express();
 
