@@ -1,7 +1,7 @@
 import { LogsCollection } from "../models";
 import { sentenceCase } from "../utils";
 
-export const log_entry = async (
+export const logEntry = async (
   collection: string,
   document_data: any,
   event: "CREATE" | "UPDATE" | "DELETE"

@@ -1,113 +1,95 @@
 import express, { Express, NextFunction, Request, Response } from "express";
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
-import { log_entry } from "../../functions";
-import { createReviewSchema } from "../../validators";
 import { ProductCollection, ReviewCollection } from "../../models";
+import { createReviewSchema } from "../../validators";
+import { logEntry } from "../../functions";
 
 const app: Express = express();
 
-// create review
+// Create review
 app.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const review_body = await createReviewSchema(req.body);
+    const reviewBody = await createReviewSchema(req.body);
 
-    // check if product exists
-    const product_exists = await ProductCollection.findOne({
-      _id: new Types.ObjectId(review_body.product),
-    }).lean();
-
-    if (!product_exists) {
-      const e = new Error("Product not found");
-      e.name = "NotFound";
-      throw e;
-    }
-    // END check if product exists
-
-    let review = new ReviewCollection({
-      ...review_body,
-      _id: new Types.ObjectId(),
-      is_dev: process.env.NODE_ENV === "dev",
+    const productExists = await ProductCollection.exists({
+      _id: reviewBody.product,
     });
-    review = (await review.save()).toObject();
 
-    // log review entry
-    await log_entry("review", review_body, "CREATE");
-    // END log review entry
+    if (!productExists) {
+      const error = new Error("Product not found");
+      error.name = "NotFound";
+      throw error;
+    }
+
+    const review = await new ReviewCollection({
+      ...reviewBody,
+      _id: new mongoose.Types.ObjectId(),
+      is_dev: process.env.NODE_ENV === "dev",
+    }).save();
+
+    await logEntry("review", reviewBody, "CREATE");
 
     res.status(200).json({
       success: true,
-      message: "Done",
-      code: 200,
-      response: review,
+      message: "Review created",
+      response: review.toObject(),
     });
   } catch (error) {
     next(error);
   }
 });
 
-// get reviews
+// Get reviews
 app.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { limit = 10, page = 1 } = req.query as unknown as {
-      limit: number;
-      page: number;
+    const { limit = 10, page = 1 } = req.query as {
+      limit?: number;
+      page?: number;
     };
 
-    const reviews_doc = await ReviewCollection.paginate(
-      {
-        is_dev: process.env.NODE_ENV === "dev",
-      },
+    const reviews = await ReviewCollection.paginate(
+      { is_dev: process.env.NODE_ENV === "dev" },
       { lean: true, limit, page, sort: { _id: -1 } }
     );
-    console.log(reviews_doc);
 
-    if (!reviews_doc.docs.length) {
-      return res.status(200).send({
+    if (!reviews.docs.length) {
+      return res.status(204).json({
         success: false,
         message: "No reviews found",
-        code: 204,
-        response: null,
       });
     }
 
-    return res.status(200).json({
-      success: false,
+    res.status(200).json({
+      success: true,
       message: "Reviews found",
-      code: 200,
-      response: reviews_doc,
+      response: reviews,
     });
   } catch (error) {
     next(error);
   }
 });
 
-// get single review
+// Get single review
 app.get(
   "/:review_id",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { review_id } = req.params as unknown as { review_id: string };
+      const { review_id } = req.params;
 
-      const review_doc = await ReviewCollection.findOne({
-        _id: review_id,
-        is_dev: process.env.NODE_ENV === "dev",
-      });
+      const review = await ReviewCollection.findById(review_id);
 
-      if (!review_doc) {
-        return res.status(200).json({
+      if (!review) {
+        return res.status(204).json({
           success: false,
           message: "Review not found",
-          code: 204,
-          response: null,
         });
       }
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
-        message: "Review Found",
-        code: 200,
-        response: review_doc,
+        message: "Review found",
+        response: review,
       });
     } catch (error) {
       next(error);

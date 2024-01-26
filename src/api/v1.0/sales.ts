@@ -1,15 +1,13 @@
 import express, { Express, NextFunction, Request, Response } from "express";
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 
-import { log_entry } from "../../functions";
-import { createCategorySchema, createSalesSchema } from "../../validators";
 import {
   DiscountCollection,
   ProductCollection,
   SaleCollection,
 } from "../../models";
-import { resolve } from "path";
-import { IProduct } from "models/products";
+import { createSalesSchema } from "../../validators";
+import { logEntry } from "../../functions";
 
 const app: Express = express();
 
@@ -37,14 +35,15 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     // END get products price sum
 
     // check if discount exists
-    const discount_exists = await findDiscount(sale_body.discount);
-    if (!discount_exists) {
-      return res.status(200).json({
-        success: false,
-        message: "Invalid discount code",
-        code: 204,
-        response: null,
-      });
+    if (sale_body.discount) {
+      const discount_exists = await findDiscount(sale_body.discount);
+      if (!discount_exists) {
+        return res.status(200).json({
+          success: false,
+          message: "Invalid discount code",
+          code: 204,
+        });
+      }
     }
     // END check if discount exists
 
@@ -57,7 +56,7 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     sale = (await sale.save()).toObject();
 
     // log sale entry
-    await log_entry("sale", sale_body, "CREATE");
+    await logEntry("sale", sale_body, "CREATE");
     // END log sale entry
 
     res.status(200).json({

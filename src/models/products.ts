@@ -5,7 +5,7 @@ import {
   PaginateResult,
   Schema,
   model,
-} from "mongoose"; // prettier-ignore
+} from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
 export type IProduct = InferSchemaType<typeof productSchema>;
