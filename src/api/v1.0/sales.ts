@@ -71,8 +71,61 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // get sales
+app.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { limit = 10, page = 1 } = req.query as {
+      limit?: number;
+      page?: number;
+    };
+
+    const sales = await SaleCollection.paginate(
+      {
+        is_deleted: { $ne: true },
+        is_dev: process.env.NODE_ENV === "dev",
+      },
+      { lean: true, limit, page, sort: { _id: -1 } }
+    );
+    if (!sales) {
+      res.status(204).json({
+        success: false,
+        message: "No sales found",
+      });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Sales found", response: sales });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // get single sale
+app.get(
+  "/:sale_id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { sale_id } = req.params;
+
+      const sale = await SaleCollection.findOne({
+        _id: sale_id,
+      });
+      if (!sale) {
+        return res
+          .status(204)
+          .json({ success: false, message: "Sale not found" });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Sale found",
+        response: sale,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default app;
 
