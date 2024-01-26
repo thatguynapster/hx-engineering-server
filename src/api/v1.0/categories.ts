@@ -32,9 +32,9 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     });
     category = (await category.save()).toObject();
 
-    // log product entry
+    // log category entry
     await log_entry("category", category_body, "CREATE");
-    // END log product entry
+    // END log category entry
 
     res.status(200).json({
       success: true,
@@ -64,7 +64,7 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!category_doc) {
-      return res.status(204).json({
+      return res.status(200).json({
         success: false,
         message: "No category found",
         code: 204,
@@ -98,9 +98,9 @@ app.get(
       });
 
       if (!category_doc) {
-        return res.status(204).json({
+        return res.status(200).json({
           success: false,
-          message: "No category found",
+          message: "Category not found",
           code: 204,
           response: null,
         });
@@ -153,9 +153,9 @@ app.delete(
         throw error;
       }
 
-      // log product entry
+      // log category entry
       await log_entry("category", { _id: category_id }, "DELETE");
-      // END log product entry
+      // END log category entry
 
       return res.status(200).json({
         success: true,

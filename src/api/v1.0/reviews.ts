@@ -31,9 +31,9 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     });
     review = (await review.save()).toObject();
 
-    // log product entry
+    // log review entry
     await log_entry("review", review_body, "CREATE");
-    // END log product entry
+    // END log review entry
 
     res.status(200).json({
       success: true,
@@ -60,9 +60,10 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
       },
       { lean: true, limit, page, sort: { _id: -1 } }
     );
+    console.log(reviews_doc);
 
-    if (!reviews_doc) {
-      return res.status(204).json({
+    if (!reviews_doc.docs.length) {
+      return res.status(200).send({
         success: false,
         message: "No reviews found",
         code: 204,
@@ -94,7 +95,7 @@ app.get(
       });
 
       if (!review_doc) {
-        return res.status(204).json({
+        return res.status(200).json({
           success: false,
           message: "Review not found",
           code: 204,

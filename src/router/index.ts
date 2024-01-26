@@ -36,6 +36,8 @@ import Reviews from "../api/v1.0/reviews";
 app.use("/api/v1.0/reviews", Reviews);
 import Discounts from "../api/v1.0/discounts";
 app.use("/api/v1.0/discounts", Discounts);
+import Sales from "../api/v1.0/sales";
+app.use("/api/v1.0/sales", Sales);
 
 app.get("/health-check", (_, res: Response, next: NextFunction) => {
   try {

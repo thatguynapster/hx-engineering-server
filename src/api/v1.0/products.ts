@@ -76,7 +76,7 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!product_doc) {
-      return res.status(204).json({
+      return res.status(200).json({
         success: false,
         message: "No products found",
         code: 204,
@@ -111,9 +111,9 @@ app.get(
       });
 
       if (!product_doc) {
-        return res.status(204).json({
+        return res.status(200).json({
           success: false,
-          message: "No products found",
+          message: "Product not found",
           code: 204,
           response: null,
         });

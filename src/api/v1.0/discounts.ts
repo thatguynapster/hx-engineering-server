@@ -32,9 +32,9 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     });
     discount = (await discount.save()).toObject();
 
-    // log product entry
+    // log discount entry
     await log_entry("discount", discount_body, "CREATE");
-    // END log product entry
+    // END log discount entry
 
     res.status(200).json({
       success: true,
@@ -64,7 +64,7 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
     );
 
     if (!discount_doc) {
-      return res.status(204).json({
+      return res.status(200).json({
         success: false,
         message: "No discounts found",
         code: 204,
@@ -96,7 +96,7 @@ app.get(
       });
 
       if (!discount_doc) {
-        return res.status(204).json({
+        return res.status(200).json({
           success: false,
           message: "Discount not found",
           code: 204,
@@ -151,9 +151,9 @@ app.delete(
         throw error;
       }
 
-      // log product entry
+      // log discount entry
       await log_entry("discount", { _id: discount_id }, "DELETE");
-      // END log product entry
+      // END log discount entry
 
       return res.status(200).json({
         success: true,
