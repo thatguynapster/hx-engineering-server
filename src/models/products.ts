@@ -7,8 +7,7 @@ import {
   model,
 } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
-
-export type IProduct = InferSchemaType<typeof productSchema>;
+import { IProduct } from "types";
 
 export interface IProductDocument extends Model<IProduct> {
   paginate: (

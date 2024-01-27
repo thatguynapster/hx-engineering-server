@@ -2,9 +2,10 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 
-import { logEntry, upload_file } from "../../functions";
 import { createProductSchema, updateProductSchema } from "../../validators";
-import { ProductCollection } from "../../models";
+import { CategoryCollection, ProductCollection } from "../../models";
+import { logEntry, upload_file } from "../../functions";
+import { ICategory, IProduct } from "types";
 
 const app: Express = express();
 
@@ -59,6 +60,22 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
       { lean: true, limit, page, sort: { _id: -1 } }
     );
 
+    // get category details for each product
+    products.docs = await Promise.all(
+      products.docs.map(async (product: IProduct) => {
+        try {
+          const categoryDetails = (await CategoryCollection.findOne({
+            _id: product.category,
+          }).lean()) as ICategory;
+          product.category_details = categoryDetails;
+          return product;
+        } catch (error) {
+          console.error("Error fetching category details:", error);
+          return product;
+        }
+      })
+    );
+
     if (!products) {
       return res.status(204).json({
         success: false,
@@ -87,7 +104,7 @@ app.get(
         _id: product_id,
         is_deleted: false,
         is_dev: process.env.NODE_ENV === "dev",
-      });
+      }).lean();
 
       if (!product) {
         return res.status(204).json({
@@ -96,10 +113,15 @@ app.get(
         });
       }
 
+      // get category details
+      const category_details = (await CategoryCollection.findOne({
+        _id: product.category,
+      }).lean()) as ICategory;
+
       res.status(200).json({
         success: true,
         message: "Product found",
-        response: product,
+        response: { ...product, category_details },
       });
     } catch (error) {
       next(error);

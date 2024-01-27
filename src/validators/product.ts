@@ -1,6 +1,5 @@
 import Joi from "joi";
-import { IProduct } from "models/products";
-// import { IProduct } from "types";
+import { IProduct } from "types";
 
 export const createProductSchema = async (
   createProductBody: IProduct
