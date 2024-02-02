@@ -20,7 +20,13 @@ const saleSchema = new Schema<ISales>(
   {
     discount: { type: String, default: null },
     is_dev: { type: Boolean, default: false },
-    products: [{ type: String, required: true }],
+    products: [
+      {
+        _id: { type: String, required: true },
+        price: { type: Number },
+        quantity: { type: Number },
+      },
+    ],
     price: { type: Number },
   },
   { timestamps: true }

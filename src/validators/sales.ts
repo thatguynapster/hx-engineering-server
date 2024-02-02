@@ -6,7 +6,15 @@ export const createSalesSchema = async (
 ): Promise<ISales> => {
   const schema = Joi.object({
     discount: Joi.string(),
-    products: Joi.array().items(Joi.string()).min(1).required(),
+    products: Joi.array()
+      .items(
+        Joi.object({
+          _id: Joi.string(),
+          quantity: Joi.number(),
+        })
+      )
+      .min(1)
+      .required(),
   });
 
   return await schema.validateAsync(createSalesBody);

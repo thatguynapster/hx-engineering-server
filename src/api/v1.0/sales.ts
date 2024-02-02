@@ -8,6 +8,7 @@ import {
 } from "../../models";
 import { createSalesSchema } from "../../validators";
 import { logEntry } from "../../functions";
+import { ISales } from "types";
 
 const app: Express = express();
 
@@ -18,7 +19,11 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     // check if products exist
     // NOTE: should return an empty array if all products exist
-    const missing_products = await findMissingProducts(sale_body.products);
+    const sale_product_ids = sale_body.products.map((product) => {
+      return product._id;
+    });
+
+    const missing_products = await findMissingProducts(sale_product_ids);
 
     if (missing_products.length) {
       return res.status(200).json({
@@ -31,7 +36,7 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     // END check if products exist
 
     // get products price sum
-    const price = await calculateTotalPrice(sale_body.products);
+    const price = await calculateTotalPrice(sale_product_ids);
     // END get products price sum
 
     // check if discount exists
@@ -47,8 +52,13 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     }
     // END check if discount exists
 
+    // add product prices to body
+    const products_with_prices = await addProductPrices(sale_body.products);
+    // END add product prices to body
+
     let sale = new SaleCollection({
       ...sale_body,
+      products: products_with_prices,
       _id: new Types.ObjectId(),
       is_dev: process.env.NODE_ENV === "dev",
       price,
@@ -56,7 +66,11 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
     sale = (await sale.save()).toObject();
 
     // log sale entry
-    await logEntry("sale", sale_body, "CREATE");
+    await logEntry(
+      "sale",
+      { ...sale_body, products: products_with_prices },
+      "CREATE"
+    );
     // END log sale entry
 
     res.status(200).json({
@@ -166,4 +180,38 @@ async function findDiscount(discountId: string): Promise<boolean> {
     is_dev: process.env.NODE_ENV === "dev",
   });
   return !!discountExists;
+}
+
+// async function addProductPrices(products: ISales["products"]) {
+//   const productsDetails = await Promise.all(
+//     products.map(async (_product, ind, products) => {
+//       const productDetails = await ProductCollection.findOne({
+//         _id: _product._id,
+//         is_deleted: false,
+//         is_dev: process.env.NODE_ENV === "dev",
+//       });
+//       products[ind].price = productDetails?.price as number;
+//       return _product;
+//     })
+//   );
+//   return productsDetails;
+// }
+
+async function addProductPrices(products: ISales["products"]) {
+  const productsWithPrices = [];
+
+  for (const product of products) {
+    const productDetails = await ProductCollection.findOne({
+      _id: product._id,
+      is_deleted: false,
+      is_dev: process.env.NODE_ENV === "dev",
+    });
+
+    if (productDetails) {
+      product.price = productDetails.price;
+      productsWithPrices.push(product);
+    }
+  }
+
+  return productsWithPrices;
 }
