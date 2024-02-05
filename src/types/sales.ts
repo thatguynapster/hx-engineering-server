@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { IProduct } from "./products";
+import { IDiscount } from "./discounts";
 
 export type ISales = {
   _id: Types.ObjectId;
@@ -12,4 +13,5 @@ export type ISales = {
     details?: IProduct;
   }[];
   price: number;
+  discount_details?: IDiscount;
 };

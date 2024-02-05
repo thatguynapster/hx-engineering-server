@@ -8,7 +8,7 @@ import {
 } from "../../models";
 import { createSalesSchema } from "../../validators";
 import { logEntry } from "../../functions";
-import { ISales } from "types";
+import { IDiscount, IProduct, ISales } from "types";
 
 const app: Express = express();
 
@@ -86,6 +86,11 @@ app.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
 // get sales
 app.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  const { product_details = false, discount_details = false } = req.query as {
+    discount_details?: boolean;
+    product_details?: boolean;
+  };
+
   try {
     const { limit = 10, page = 1 } = req.query as {
       limit?: number;
@@ -99,6 +104,50 @@ app.get("/", async (req: Request, res: Response, next: NextFunction) => {
       },
       { lean: true, limit, page, sort: { _id: -1 } }
     );
+
+    // get product details for each sale
+    if (product_details) {
+      sales.docs = await Promise.all(
+        sales.docs.map(async (sale: ISales) => {
+          sale.products = await Promise.all(
+            // Wait for all inner promises to resolve
+            sale.products.map(async (product) => {
+              try {
+                const productDetails = (await ProductCollection.findOne({
+                  _id: product._id,
+                }).lean()) as IProduct;
+
+                product.details = productDetails;
+                return product;
+              } catch (error) {
+                console.log("Error fetching product details");
+                return product;
+              }
+            })
+          );
+
+          return sale;
+        })
+      );
+    }
+    // END get product details for each sale
+
+    // get discount details for each sale
+    if (discount_details) {
+      sales.docs = await Promise.all(
+        sales.docs.map(async (sale: ISales) => {
+          const discountDetails = (await DiscountCollection.findOne({
+            _id: sale.discount,
+            is_dev: process.env.NODE_ENV === "dev",
+          }).lean()) as IDiscount;
+
+          sale.discount_details = discountDetails;
+          return sale;
+        })
+      );
+    }
+    // END get discount details for each sale
+
     if (!sales) {
       res.status(204).json({
         success: false,
@@ -120,15 +169,50 @@ app.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { sale_id } = req.params;
+      const { product_details = false, discount_details = false } =
+        req.query as {
+          discount_details?: boolean;
+          product_details?: boolean;
+        };
 
       const sale = await SaleCollection.findOne({
         _id: sale_id,
-      });
+      }).lean();
       if (!sale) {
         return res
           .status(204)
           .json({ success: false, message: "Sale not found" });
       }
+
+      // get product details for each product in sale
+      if (product_details) {
+        sale.products = await Promise.all(
+          sale.products.map(async (product) => {
+            const product_details = await ProductCollection.findOne({
+              _id: product._id,
+              is_dev: process.env.NODE_ENV === "dev",
+            }).lean();
+
+            if (product_details) {
+              product.details = product_details;
+            }
+            return product;
+          })
+        );
+      }
+      // END get product details for each product in sale
+
+      // get discount details
+      if (discount_details) {
+        const discountDetails = (await DiscountCollection.findOne({
+          _id: sale.discount,
+          is_dev: process.env.NODE_ENV === "dev",
+        }).lean()) as IDiscount;
+        console.log(discountDetails);
+
+        sale.discount_details = discountDetails;
+      }
+      // END get discount details
 
       res.status(200).json({
         success: true,
@@ -181,21 +265,6 @@ async function findDiscount(discountId: string): Promise<boolean> {
   });
   return !!discountExists;
 }
-
-// async function addProductPrices(products: ISales["products"]) {
-//   const productsDetails = await Promise.all(
-//     products.map(async (_product, ind, products) => {
-//       const productDetails = await ProductCollection.findOne({
-//         _id: _product._id,
-//         is_deleted: false,
-//         is_dev: process.env.NODE_ENV === "dev",
-//       });
-//       products[ind].price = productDetails?.price as number;
-//       return _product;
-//     })
-//   );
-//   return productsDetails;
-// }
 
 async function addProductPrices(products: ISales["products"]) {
   const productsWithPrices = [];
